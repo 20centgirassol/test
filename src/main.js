@@ -2,6 +2,7 @@ class Inventory {
   constructor(scene) {
     this.scene = scene;
     this.blocks = [0, 1, 2];
+    this.counts = [10, 10, 10];
     this.current = 0;
     this.modal = document.getElementById('inventoryModal');
     this.modal.querySelectorAll('.item').forEach(item => {
@@ -10,12 +11,32 @@ class Inventory {
         this.hide();
       });
     });
+    this.updateUI();
     this.hide();
   }
-  show() { this.modal.style.display = 'block'; }
+  show() {
+    this.updateUI();
+    this.modal.style.display = 'block';
+  }
   hide() { this.modal.style.display = 'none'; }
   toggle() { this.modal.style.display === 'none' ? this.show() : this.hide(); }
   get type() { return this.blocks[this.current]; }
+
+  updateUI() {
+    this.modal.querySelectorAll('.count').forEach(span => {
+      const type = parseInt(span.dataset.type, 10);
+      span.textContent = this.counts[type];
+    });
+  }
+
+  useCurrent() {
+    if (this.counts[this.current] > 0) {
+      this.counts[this.current]--;
+      this.updateUI();
+      return true;
+    }
+    return false;
+  }
 }
 
 class Player {
@@ -51,8 +72,13 @@ class Player {
     this.y += this.vy * dt;
 
     const tileX = Math.floor(this.x / this.blockSize);
-    const groundHeight = this.scene.getGroundHeight(tileX);
-    const groundY = (this.scene.gridHeight - groundHeight - 1) * this.blockSize;
+    const bottomTile = Math.floor((this.y + this.blockSize / 2) / this.blockSize);
+
+    let groundY = (this.scene.gridHeight - this.scene.getGroundHeight(tileX) - 1) * this.blockSize;
+    if (this.scene.getBlock(tileX, bottomTile) !== undefined) {
+      groundY = Math.min(groundY, bottomTile * this.blockSize - this.blockSize / 2);
+    }
+
     if (this.y > groundY) {
       this.y = groundY;
       this.vy = 0;
@@ -98,12 +124,35 @@ class GameScene extends Phaser.Scene {
     return base + Math.floor((Math.sin(x / 5) + 1) * 2);
   }
 
+  getBlock(x, y) {
+    const key = `${x},${y}`;
+    if (this.userBlocks[key] !== undefined) {
+      return this.userBlocks[key];
+    }
+    const ground = this.getGroundHeight(x);
+    if (y >= this.gridHeight - ground) {
+      return 0;
+    }
+    return undefined;
+  }
+
   placeBlock(pointer) {
     if (this.inventory.modal.style.display !== 'none') return;
     const tileX = Math.floor(pointer.worldX / this.blockSize);
     const tileY = Math.floor(pointer.worldY / this.blockSize);
     const key = `${tileX},${tileY}`;
-    this.userBlocks[key] = this.inventory.type;
+    if (pointer.rightButtonDown()) {
+      if (this.userBlocks[key] !== undefined) {
+        const type = this.userBlocks[key];
+        delete this.userBlocks[key];
+        this.inventory.counts[type]++;
+        this.inventory.updateUI();
+      }
+    } else {
+      if (this.inventory.useCurrent()) {
+        this.userBlocks[key] = this.inventory.type;
+      }
+    }
   }
 
   drawWorld() {
@@ -130,7 +179,8 @@ class GameScene extends Phaser.Scene {
       this.uiText = this.add.text(10, 10, '', { font: '16px Arial', fill: '#ffffff' });
       this.uiText.setScrollFactor(0);
     }
-    this.uiText.setText(`Bloco selecionado: ${this.inventory.current}`);
+    const count = this.inventory.counts[this.inventory.current];
+    this.uiText.setText(`Bloco selecionado: ${this.inventory.current} (x${count})`);
   }
 
   update() {

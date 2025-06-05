@@ -1,12 +1,14 @@
 # Simple Phaser Terraria-like Game
 
-This is a minimal example of a game built with [Phaser 3](https://phaser.io/). It demonstrates a very basic terrain-building mechanic with a simple inventory.
+This is a minimal example of a game built with [Phaser 3](https://phaser.io/). It demonstrates a basic terrain-building mechanic with a simple inventory system that tracks block quantities.
 
 ## Features
 
-- Click to place blocks on a grid.
-- Press **Q** to cycle through block types.
-- Inventory shows the selected block.
+- Left click to place blocks on a grid.
+- Right click to remove blocks and return them to your inventory.
+- Press **I** to open the inventory and choose the block type.
+- Inventory displays how many blocks of each type you have left.
+- The player now collides with blocks you place.
 
 ## Setup
 
