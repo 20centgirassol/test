@@ -6,10 +6,32 @@
   <style>
     body { margin: 0; padding: 0; }
     canvas { display: block; margin: 0 auto; }
+    #inventoryModal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border: 1px solid #fff;
+    }
+    #inventoryModal .item {
+      width: 40px;
+      height: 40px;
+      margin: 5px;
+      display: inline-block;
+      cursor: pointer;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
 </head>
 <body>
+  <div id="inventoryModal">
+    <div class="item" data-type="0" style="background:#8B4513"></div>
+    <div class="item" data-type="1" style="background:#00FF00"></div>
+    <div class="item" data-type="2" style="background:#AAAAAA"></div>
+  </div>
   <script src="src/main.js"></script>
 </body>
 </html>
